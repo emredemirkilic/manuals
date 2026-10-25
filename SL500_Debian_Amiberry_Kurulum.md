@@ -1,35 +1,35 @@
-[# LENOVO THINKPAD SL500
+# LENOVO THINKPAD SL500
 
 ## Debian 13 Minimal + Amiberry 8.4.2 Kurulum Rehberi
 
-**Sürüm:** 1.0 — 25 Ekim 2026\
-**Referans:** Başarılı Lenovo SL500 kurulumu\
+**Sürüm:** 1.1 — 25 Ekim 2026  
+**Referans:** Başarılı Lenovo SL500 kurulumu  
 **Amaç:** Masaüstü ortamı olmadan, doğrudan Amiberry çalıştıran bağımsız bir Amiga emülasyon sistemi.
 
 ---
 
 ## 1. Donanım ve başarılı kurulumun özeti
 
-| Bileşen         | Lenovo SL500                         |
-| --------------- | ------------------------------------ |
-| İşlemci         | Intel Core 2 Duo P8600, 2.40 GHz     |
-| RAM             | 4 GB                                 |
-| Depolama        | SSD                                  |
-| Ekran kartı     | NVIDIA GeForce G 105M                |
-| Grafik sürücüsü | Nouveau                              |
-| İşletim sistemi | Debian 13 Trixie, amd64              |
-| Grafik sistemi  | Minimal X11                          |
-| Emülatör        | Amiberry 8.4.2                       |
-| Ses             | ALSA                                 |
-| Uzaktan yönetim | SSH / PuTTY                          |
-| Dosya aktarımı  | SFTP / FileZilla                     |
-| Başlatma        | Fiziksel konsoldan otomatik Amiberry |
+| Bileşen | Lenovo SL500 |
+| --- | --- |
+| İşlemci | Intel Core 2 Duo P8600, 2.40 GHz |
+| RAM | 4 GB |
+| Depolama | SSD |
+| Ekran kartı | NVIDIA GeForce G 105M |
+| Grafik sürücüsü | Nouveau |
+| İşletim sistemi | Debian 13 Trixie, amd64 |
+| Grafik sistemi | Minimal X11 |
+| Emülatör | Amiberry 8.4.2 |
+| Ses | ALSA |
+| Uzaktan yönetim | SSH / PuTTY |
+| Dosya aktarımı | SFTP / FileZilla |
+| Başlatma | Fiziksel konsoldan otomatik Amiberry |
 
 **Başarılı son durum:** Amiberry 8.4.2 açılıyor, A500 ve A1200 yapılandırmaları çalışıyor, görüntü ve ses düzgün, oyunlar akıcı, emülatörden çıkınca AMIGA CONTROL CENTER menüsü kullanılabiliyor.
 
 ### Temel mimari
 
-```
+```text
 LENOVO SL500
     |
     v
@@ -70,17 +70,15 @@ Kurulum sırasında:
 İlk güncelleme:
 
 ```bash
-su -             # Root hesabına geç; sonraki sistem komutlarını yönetici yetkisiyle çalıştır.
-apt update      # APT paket listelerini depolardan yenile.
-apt upgrade -y  # Kurulu paketleri güncelle; onay sorularını otomatik kabul et.
+su -             # Root hesabına geç.
+apt update       # APT paket listelerini güncelle.
+apt upgrade -y   # Kurulu paketleri güncelle ve onayları otomatik kabul et.
 ```
 
 Temel yönetim araçları:
 
 ```bash
-# sudo: yetki yükseltme; nano/vim: editör; less: metin görüntüleyici.
-# bash-completion: komut tamamlama; curl/wget: indirme; ca-certificates: HTTPS sertifikaları.
-# htop: kaynak izleme; pciutils/usbutils: PCI ve USB donanım bilgileri.
+# Temel terminal, indirme, sistem izleme ve donanım tanılama araçlarını kur.
 apt install -y \
   sudo nano vim less \
   bash-completion curl wget \
@@ -91,10 +89,10 @@ apt install -y \
 **Kontrol:**
 
 ```bash
-cat /etc/os-release  # Debian dağıtımını ve sürümünü göster.
-uname -m             # İşlemci/sistem mimarisini göster (beklenen: x86_64).
-free -h              # RAM ve takas alanını okunabilir birimlerle göster.
-lsblk                # Diskleri ve bölümlerini listeler.
+cat /etc/os-release  # İşletim sistemi ve sürüm bilgisini göster.
+uname -m             # Sistem mimarisini göster; x86_64 beklenir.
+free -h              # RAM ve swap kullanımını okunabilir biçimde göster.
+lsblk                 # Disk ve bölüm yapısını listeler.
 ```
 
 Beklenen mimari `x86_64` olmalıdır.
@@ -108,52 +106,181 @@ SL500'de SSH üzerinden PuTTY ile bağlantı kurduk.
 ### OpenSSH kurulumu
 
 ```bash
-apt install -y openssh-server  # SSH sunucusunu kur; PuTTY/SFTP bağlantısını mümkün kıl.
+apt install -y openssh-server  # SSH sunucusunu kur.
 ```
 
 Servisi etkinleştir:
 
 ```bash
-systemctl enable --now ssh  # SSH'yi hemen başlat ve sonraki açılışlarda otomatik çalıştır.
+systemctl enable --now ssh  # SSH servisini şimdi başlat ve açılışta otomatik çalıştır.
 ```
 
 Kontrol:
 
 ```bash
-systemctl status ssh --no-pager  # SSH servisinin çalışma durumunu sayfalayıcı açmadan göster.
+systemctl status ssh --no-pager  # SSH servisinin durumunu göster.
 ```
 
 Başarılı sonuç:
 
-```
+```text
 Active: active (running)
 ```
 
 IP adresini öğren:
 
 ```bash
-hostname -I  # Makinenin atanmış IP adreslerini listeler.
+hostname -I  # Sistemin atanmış IP adreslerini kısa biçimde göster.
 ```
 
 veya:
 
 ```bash
-ip -4 addr  # Ağ arayüzleri üzerindeki IPv4 adreslerini ayrıntılı gösterir.
+ip -4 addr  # Ağ arayüzlerinin IPv4 adreslerini ayrıntılı göster.
 ```
 
-Önceki SL500 kurulumunda kullanılan IP adresleri:
+### 3.1 Ethernet ve Wi-Fi için sabit IP yapılandırması
 
-- Ethernet: `192.168.1.30`
-- Wi-Fi: `192.168.1.31`
+SL500 üzerinde kullandığımız sabit adresler:
 
-Bunlar o kurulumda görülen adreslerdir; yeni kurulumda DHCP nedeniyle değişebilir.
+| Bağlantı | Arayüz | Sabit IP |
+| --- | --- | --- |
+| Ethernet | `enp12s0` | `192.168.1.30` |
+| Wi-Fi | `wlp3s0` | `192.168.1.31` |
+
+Ağ geçidi:
+
+```text
+192.168.1.1
+```
+
+Ağ maskesi:
+
+```text
+255.255.255.0
+```
+
+Önemli: Bu adresleri modeminin DHCP havuzundan ayırmak veya modem üzerinden rezerve etmek gerekir. Aksi hâlde modem aynı IP adresini başka bir cihaza dağıtabilir.
+
+#### Mevcut ağ yapılandırmasını yedekle
+
+```bash
+cp /etc/network/interfaces /etc/network/interfaces.bak  # Mevcut ağ yapılandırmasının yedeğini oluştur.
+```
+
+#### Ethernet için statik IP
+
+```bash
+cat > /etc/network/interfaces <<'EOF'
+# Ek ağ yapılandırma dosyalarını da dahil et.
+source /etc/network/interfaces.d/*
+
+# Loopback arayüzünü otomatik başlat.
+auto lo
+iface lo inet loopback
+
+# Ethernet arayüzünü otomatik başlat.
+auto enp12s0
+
+# Ethernet için statik IPv4 yapılandırması kullan.
+iface enp12s0 inet static
+    address 192.168.1.30
+    netmask 255.255.255.0
+    gateway 192.168.1.1
+EOF
+```
+
+Dosyayı kontrol et:
+
+```bash
+cat /etc/network/interfaces  # Oluşturulan ağ yapılandırmasını ekrana yaz.
+```
+
+#### Wi-Fi için statik IP
+
+Wi-Fi arayüzü:
+
+```text
+wlp3s0
+```
+
+Wi-Fi bağlantısını `wpa_supplicant` ile yönettik.
+
+Yapılandırma dosyasını düzenle:
+
+```bash
+nano /etc/wpa_supplicant/wpa_supplicant-wlp3s0.conf  # Wi-Fi kimlik doğrulama ayarlarını düzenle.
+```
+
+Örnek yapı:
+
+```conf
+# wpa_supplicant'ın kontrol arayüzünü tanımla.
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+
+# Yapılandırmanın güncellenmesine izin ver.
+update_config=1
+
+# Kablosuz ağ ülke kodunu tanımla.
+country=TR
+
+network={
+    # Wi-Fi ağ adını yaz.
+    ssid="WIFI_ADI"
+
+    # Wi-Fi şifresini yaz.
+    psk="WIFI_SIFRESI"
+}
+```
+
+`/etc/network/interfaces` dosyasına Wi-Fi bölümünü ekle:
+
+```bash
+nano /etc/network/interfaces  # Ağ yapılandırma dosyasını yeniden aç.
+```
+
+Dosyada aşağıdaki Wi-Fi bölümünü ekle:
+
+```conf
+# Wi-Fi arayüzünü otomatik başlat.
+auto wlp3s0
+
+# Wi-Fi için statik IPv4 yapılandırması kullan.
+iface wlp3s0 inet static
+    address 192.168.1.31
+    netmask 255.255.255.0
+    wpa-conf /etc/wpa_supplicant/wpa_supplicant-wlp3s0.conf
+```
+
+Wi-Fi servisinin açılışta çalışmasını sağla:
+
+```bash
+systemctl enable wpa_supplicant@wlp3s0  # wlp3s0 için wpa_supplicant servisini açılışa ekle.
+```
+
+Ağ yapılandırmasını kontrol et:
+
+```bash
+ip -4 addr show enp12s0  # Ethernet arayüzünün IPv4 adresini göster.
+ip -4 addr show wlp3s0   # Wi-Fi arayüzünün IPv4 adresini göster.
+ip route                 # Varsayılan ağ geçidi ve yönlendirme tablosunu göster.
+```
+
+Beklenen:
+
+```text
+enp12s0 -> 192.168.1.30
+wlp3s0  -> 192.168.1.31
+```
+
+Not: İki arayüz aynı anda aktif olduğunda yönlendirme tablosunda birden fazla varsayılan rota görülebilir. `ip route` ile kontrol et.
 
 ### PuTTY ile bağlanma
 
 PuTTY'de:
 
-```
-Host: SL500 IP adresi
+```text
+Host: 192.168.1.30 veya 192.168.1.31
 Port: 22
 Connection type: SSH
 ```
@@ -169,38 +296,36 @@ Ancak **root hesabıyla şifreli SSH girişi güvenlik riskini artırır**. Terc
 Yine de önceki davranışı birebir oluşturmak istiyorsan, yalnızca güvenilir yerel ağda ve internete 22 numaralı portu açmadan:
 
 ```bash
-nano /etc/ssh/sshd_config.d/00-root-login.conf  # Root SSH ayarları için ayrı yapılandırma dosyasını aç.
+nano /etc/ssh/sshd_config.d/00-root-login.conf  # Root SSH giriş ayarları için ayrı dosya oluştur.
 ```
 
 İçerik:
 
 ```text
-# Root hesabının SSH ile girişine izin ver.
 PermitRootLogin yes
-# SSH üzerinden parola ile kimlik doğrulamaya izin ver.
 PasswordAuthentication yes
 ```
 
 Yapılandırmayı doğrula:
 
 ```bash
-sshd -t  # SSH yapılandırmasının sözdizimini kontrol et; doğruysa çıktı vermez.
-sshd -T | grep -E 'permitrootlogin|passwordauthentication'  # Etkin root/parola ayarlarını göster.
+sshd -t  # SSH yapılandırmasında sözdizimi hatası olup olmadığını kontrol et.
+sshd -T | grep -E 'permitrootlogin|passwordauthentication'  # Etkin root ve parola ayarlarını göster.
 ```
 
 Servis yeniden yüklemesini ancak hata olmadığını gördükten sonra yap:
 
 ```bash
-systemctl reload ssh  # Çalışan SSH servisine yeni yapılandırmayı uygula.
+systemctl reload ssh  # SSH servisini bağlantıları mümkün olduğunca koruyarak yeniden yükle.
 ```
 
 Yeni root bağlantısını ayrı bir PuTTY penceresinde doğrulamadan mevcut SSH oturumunu kapatma.
 
 ### FileZilla
 
-```
+```text
 Protocol: SFTP
-Host: SL500 IP adresi
+Host: 192.168.1.30 veya 192.168.1.31
 Port: 22
 Username: normal kullanıcı veya izin verilmişse root
 Password: ilgili hesap şifresi
@@ -221,19 +346,19 @@ Başarılı kurulumda kullanılan sürücü:
 Kartı kontrol et:
 
 ```bash
-lspci | grep -Ei 'vga|3d|display'  # PCI aygıtlarında grafik/görüntü denetleyicilerini bul.
+lspci | grep -Ei 'vga|3d|display'  # Grafik denetleyicisini PCI aygıtları içinde bul.
 ```
 
 Nouveau modülünü kontrol et:
 
 ```bash
-lsmod | grep nouveau  # Nouveau çekirdek sürücüsünün yüklenip yüklenmediğini göster.
+lsmod | grep nouveau  # Nouveau çekirdek modülünün yüklü olup olmadığını göster.
 ```
 
 DRM aygıtları:
 
 ```bash
-ls -l /dev/dri/  # Ekran kartının DRM aygıt düğümlerini listeler.
+ls -l /dev/dri/  # Grafik aygıtlarının DRM düğümlerini listeler.
 ```
 
 Bizim kurulumumuzda Nouveau düzgün çalıştı. NVIDIA'nın eski proprietary sürücüsünü ayrıca yüklemedik.
@@ -249,27 +374,26 @@ Dahili panel için `LVDS-1` çıkışını kullandık.
 GRUB dosyasını düzenle:
 
 ```bash
-nano /etc/default/grub  # GRUB açılış parametrelerinin tanımlandığı dosyayı düzenle.
+nano /etc/default/grub  # GRUB çekirdek başlangıç parametrelerini düzenle.
 ```
 
 `GRUB_CMDLINE_LINUX_DEFAULT` satırındaki mevcut parametreleri koruyarak şu parametreyi ekle:
 
-```
+```text
 video=LVDS-1:1024x768@60
 ```
 
 Örneğin:
 
 ```text
-# Çekirdeği dahili LVDS-1 ekranında 1024x768 ve 60 Hz kullanacak biçimde başlatır.
 GRUB_CMDLINE_LINUX_DEFAULT="quiet video=LVDS-1:1024x768@60"
 ```
 
 Kaydet ve uygula:
 
 ```bash
-update-grub  # Değişen GRUB parametrelerinden önyükleme yapılandırmasını yeniden üret.
-reboot       # Yeni ekran parametresinin uygulanması için bilgisayarı yeniden başlat.
+update-grub  # GRUB yapılandırmasını yeniden oluştur.
+reboot       # Yeni görüntü parametresini uygulamak için sistemi yeniden başlat.
 ```
 
 **Doğrulanmış sonuç:** Yeniden başlatma sonrasında SL500'de 1024 × 768 çözünürlük elde edildi.
@@ -285,9 +409,7 @@ Tam masaüstü kurmadan Amiberry'yi çalıştırmamızın temel adımıydı.
 Kullandığımız çekirdek paketler:
 
 ```bash
-# xserver-xorg-core: X11 sunucusu; xserver-xorg-input-libinput: klavye/fare girişi.
-# xinit: X11 başlatma; xauth: X11 oturum yetkilendirmesi.
-# libgl1-mesa-dri ve libgl1: grafik/OpenGL kütüphaneleri; libasound2t64: ALSA ses kütüphanesi.
+# X sunucusu, giriş aygıtları, X başlatma araçları, OpenGL ve ALSA kütüphanelerini kur.
 apt install -y \
   xserver-xorg-core \
   xserver-xorg-input-libinput \
@@ -299,7 +421,7 @@ apt install -y \
 Test için Xterm:
 
 ```bash
-apt install -y xterm  # X11'in açıldığını sınamak için basit terminal penceresi kur.
+apt install -y xterm  # X11 ortamını test etmek için xterm terminalini kur.
 ```
 
 ### X11 testi
@@ -323,7 +445,7 @@ Kontrol ettiklerimiz:
 Xterm'den çıkmak için:
 
 ```bash
-exit  # Xterm kabuğundan çıkar; test penceresini ve X oturumunu sonlandırır.
+exit  # xterm oturumunu sonlandır; X oturumu da kapanır.
 ```
 
 ### Bu yaklaşım neden önemli?
@@ -347,7 +469,7 @@ apt install -y alsa-utils  # alsamixer, aplay, speaker-test ve alsactl araçlar�
 Ses kartlarını listele:
 
 ```bash
-aplay -l  # ALSA tarafından bulunan ses çalma aygıtlarını listeler.
+aplay -l  # ALSA tarafından tanınan ses oynatma aygıtlarını listeler.
 ```
 
 ```bash
@@ -357,18 +479,18 @@ cat /proc/asound/cards  # Çekirdeğin tanıdığı ALSA ses kartlarını göste
 ### Alsamixer
 
 ```bash
-alsamixer  # Ses kanallarının seviyesini ve mute durumunu etkileşimli değiştir.
+alsamixer  # Etkileşimli ALSA ses mikserini aç.
 ```
 
 Klavye kontrolleri:
 
-| Tuş            | İşlem                 |
-| -------------- | --------------------- |
-| F6             | Ses kartı seç         |
-| Sol / Sağ      | Ses kanalını değiştir |
+| Tuş | İşlem |
+| --- | --- |
+| F6 | Ses kartı seç |
+| Sol / Sağ | Ses kanalını değiştir |
 | Yukarı / Aşağı | Ses seviyesini ayarla |
-| M              | Mute aç / kapat       |
-| Esc            | Çık                   |
+| M | Mute aç / kapat |
+| Esc | Çık |
 
 Özellikle şu kanalları kontrol ettik:
 
@@ -384,7 +506,7 @@ Ses seviyesini başlangıç için yaklaşık **%80** yap.
 ### Ses testi
 
 ```bash
-speaker-test -c 2 -t wav  # İki kanallı (stereo) WAV örnekleriyle ses çıkışını test et.
+speaker-test -c 2 -t wav  # İki kanallı WAV örneğiyle ses çıkışını test et.
 ```
 
 Testi durdurmak için `Ctrl+C`.
@@ -392,7 +514,7 @@ Testi durdurmak için `Ctrl+C`.
 ### Ses ayarlarını kalıcı kaydet
 
 ```bash
-alsactl store  # Mevcut ALSA seviye/mute ayarlarını sonraki açılışlar için kaydet.
+alsactl store  # Mevcut ALSA mikser ayarlarını kalıcı olarak kaydet.
 ```
 
 **Doğrulanmış sonuç:** SL500'de mute kaldırıldıktan sonra Amiberry'den ses alındı.
@@ -410,7 +532,7 @@ Derleme yapmadık.
 ### Gerekli araçlar
 
 ```bash
-apt install -y curl ca-certificates  # HTTPS üzerinden depo betiğini indirmek için araçları kur.
+apt install -y curl ca-certificates  # HTTPS üzerinden depo kurulum betiğini indirmek için gereken araçları kur.
 ```
 
 ### Resmî depoyu ekleme
@@ -418,13 +540,13 @@ apt install -y curl ca-certificates  # HTTPS üzerinden depo betiğini indirmek 
 Başarılı kurulumda kullandığımız komut:
 
 ```bash
-curl -fsSL https://packages.amiberry.com/install.sh | sh  # Resmî depo kurulum betiğini indirip kabukta çalıştırır.
+curl -fsSL https://packages.amiberry.com/install.sh | sh  # Resmî Amiberry depo kurulum betiğini indirip çalıştır.
 ```
 
 Sonraki bir yeniden kurulumda betiği önce indirip incelemek daha güvenlidir:
 
 ```bash
-# Resmî depo betiğini yürütmeden önce /tmp içine indir.
+# Resmî kurulum betiğini /tmp altına indir; henüz çalıştırma.
 curl -fsSL https://packages.amiberry.com/install.sh \
   -o /tmp/amiberry-install.sh
 ```
@@ -432,31 +554,31 @@ curl -fsSL https://packages.amiberry.com/install.sh \
 İçeriğini kontrol ettikten sonra:
 
 ```bash
-sh /tmp/amiberry-install.sh  # İndirilen Amiberry APT depo kurulum betiğini çalıştır.
+sh /tmp/amiberry-install.sh  # İndirilen Amiberry depo kurulum betiğini çalıştır.
 ```
 
 ### Paket listesini güncelle
 
 ```bash
-apt update  # Yeni eklenen Amiberry deposundaki paket listesini al.
+apt update  # Yeni eklenen depo dahil tüm paket listelerini yenile.
 ```
 
 Paketi kontrol et:
 
 ```bash
-apt policy amiberry  # Amiberry'nin aday sürümünü ve hangi depodan geldiğini göster.
+apt policy amiberry  # Amiberry paketinin aday sürümünü ve depo kaynağını göster.
 ```
 
 ### Amiberry kurulumu
 
 ```bash
-apt install -y amiberry  # Resmî depodaki Amiberry paketini kur.
+apt install -y amiberry  # Amiberry paketini kur.
 ```
 
 ### Kurulumu doğrulama
 
 ```bash
-command -v amiberry  # Çalıştırılabilir Amiberry dosyasının yolunu göster.
+command -v amiberry  # Amiberry çalıştırılabilir dosyasının yolunu göster.
 ```
 
 Beklenen:
@@ -484,7 +606,7 @@ Not: Gelecekte depo daha yeni bir sürüm sunabilir. Tam aynı sürümü yeniden
 SL500'deki başarılı ve basit başlatma komutumuz:
 
 ```bash
-startx /usr/bin/amiberry -- :0  # X11 ekranı :0 üzerinde Amiberry'yi başlat.
+startx /usr/bin/amiberry -- :0  # X11 ekranı :0 üzerinde Amiberry'yi doğrudan başlat.
 ```
 
 Bunu bilgisayarın fiziksel terminalinden çalıştırdık.
@@ -494,23 +616,23 @@ Bunu bilgisayarın fiziksel terminalinden çalıştırdık.
 ### `amb` kısayolunu oluşturma
 
 ```bash
-cat > /usr/local/bin/amb <<'EOF'  # /usr/local/bin/amb adlı başlatıcı betiği oluştur.
+cat > /usr/local/bin/amb <<'EOF'
 #!/bin/bash
-# Betiği Bash ile çalıştır (shebang ilk satırda kalmalıdır).
-exec startx /usr/bin/amiberry -- :0  # Kabuk sürecini X11 üzerinde çalışan Amiberry ile değiştir.
+# Amiberry'yi minimal X11 ortamında başlat.
+exec startx /usr/bin/amiberry -- :0
 EOF
 ```
 
 Çalıştırılabilir yap:
 
 ```bash
-chmod +x /usr/local/bin/amb  # 'amb' dosyasına çalıştırma izni ver.
+chmod +x /usr/local/bin/amb  # amb betiğine çalıştırma izni ver.
 ```
 
 Artık fiziksel terminalde:
 
 ```bash
-amb  # Oluşturulan kısayol ile Amiberry'yi başlat.
+amb  # Amiberry'yi kısa komutla başlat.
 ```
 
 yazmak yeterli.
@@ -522,7 +644,7 @@ Kurulumda Amiberry'nin ROM dizinini arayüzde doğru göstermemiz gerekir.
 Olası dizinleri kontrol et:
 
 ```bash
-# /usr/share, /root ve /home altında ROM/kickstart/Amiberry klasörlerini ara.
+# /usr/share, /root ve /home altında Amiberry, roms ve kickstarts dizinlerini ara.
 find /usr/share /root /home \
   -type d \
   \( -name roms -o -name kickstarts -o -iname '*amiberry*' \) \
@@ -543,7 +665,7 @@ Burada SL500 kurulumu için en önemli ölçümlü sonucu elde ettik.
 
 Kurulumda zaten tam masaüstü yüklemediğimiz için Amiberry:
 
-```
+```text
 Debian konsol
     ↓
 Minimal X11
@@ -558,17 +680,17 @@ Bu, tercih ettiğimiz hafif yapıydı.
 ### 9.2 CPU kullanımını ölçme
 
 ```bash
-apt install -y htop  # İşlemci ve RAM kullanımını etkileşimli izleme aracını kur.
+apt install -y htop  # Etkileşimli CPU ve RAM izleme aracını kur.
 ```
 
 ```bash
-htop  # İşlem bazında CPU ve bellek kullanımını göster.
+htop  # İşlemci, RAM ve çalışan süreçleri canlı izle.
 ```
 
 Veya Amiberry çalışırken SSH üzerinden:
 
 ```bash
-top -p $(pgrep -o amiberry)  # İlk Amiberry sürecinin PID'sini bul ve top ile izle.
+top -p $(pgrep -o amiberry)  # En eski Amiberry sürecinin CPU/RAM kullanımını izle.
 ```
 
 Burada CPU ve RAM kullanımını izledik.
@@ -579,19 +701,17 @@ Burada CPU ve RAM kullanımını izledik.
 
 Amiberry'nin CPU / chipset ile ilgili ayarlarında:
 
-```
+```text
 Cycle-exact: OFF
 ```
 
 Yaptığımız ölçümlerde yaklaşık:
 
-| Ölçüm                            |        Önce |           Sonra |
-| -------------------------------- | ----------: | --------------: |
-| Amiberry ana işlem CPU kullanımı |       %89,4 |           %73,5 |
-| RAM kullanımı                    |      333 MB |          349 MB |
-| Ses ve görüntü                   | Test edildi | Akıcı ve düzgün |
-
-\<ChartNotePlaceholder/>
+| Ölçüm | Önce | Sonra |
+| --- | ---: | ---: |
+| Amiberry ana işlem CPU kullanımı | %89,4 | %73,5 |
+| RAM kullanımı | 333 MB | 349 MB |
+| Ses ve görüntü | Test edildi | Akıcı ve düzgün |
 
 **Sonuç:** Cycle-exact kapatıldığında ölçülen CPU kullanımı yaklaşık **15,9 yüzde puan** azaldı.
 
@@ -641,29 +761,32 @@ Bu düzen **yalnızca tty1 fiziksel konsolu** için tasarlandı.
 ### Getty override dizini
 
 ```bash
-mkdir -p /etc/systemd/system/getty@tty1.service.d  # tty1 servis ayarları için override dizinini oluştur.
+mkdir -p /etc/systemd/system/getty@tty1.service.d  # tty1 için systemd override dizinini oluştur.
 ```
 
 Dosyayı oluştur:
 
 ```bash
-nano /etc/systemd/system/getty@tty1.service.d/autologin.conf  # Otomatik giriş yapılandırmasını düzenle.
+nano /etc/systemd/system/getty@tty1.service.d/autologin.conf  # tty1 otomatik giriş ayarını düzenle.
 ```
 
 İçerik:
 
 ```ini
+# systemd getty servis ayarları.
 [Service]
-# Önce varsayılan ExecStart değerini temizle.
+
+# Varsayılan ExecStart satırını temizle.
 ExecStart=
-# tty1'de root hesabını parola sormadan açan agetty komutunu tanımla.
+
+# tty1 üzerinde root kullanıcısını otomatik oturum açtır.
 ExecStart=-/sbin/agetty --autologin root --noclear %I $TERM
 ```
 
 Systemd yapılandırmasını yenile:
 
 ```bash
-systemctl daemon-reload  # systemd'nin yeni tty1 servis override dosyasını okumasını sağla.
+systemctl daemon-reload  # systemd servis tanımlarını yeniden yükle.
 ```
 
 Bir sonraki açılışta fiziksel `tty1` root olarak otomatik giriş yapar.
@@ -676,7 +799,7 @@ Başarılı SL500 kurulumunun son aşamasında basit bir terminal kontrol menüs
 
 İki temel işlem:
 
-```
+```text
 1 - START AMIBERRY
 2 - SYSTEM INFORMATION
 ```
@@ -693,115 +816,115 @@ Aşağıdaki içerik, önceki menünün yeniden kurulabilir bir sürümüdür:
 
 ```bash
 #!/bin/bash
-# Bu dosya Bash ile çalıştırılan basit terminal menüsüdür.
+# Basit Amiga kontrol menüsü.
 
 clear  # Terminal ekranını temizle.
-echo "========================================"  # Üst ayırıcı çizgisini yazdır.
-echo "          AMIGA CONTROL CENTER"  # Menü başlığını yazdır.
-echo "========================================"  # Başlığın alt çizgisini yazdır.
-echo  # Boş satır bırak.
-echo "  1 - START AMIBERRY"  # 1 komutunun Amiberry'yi başlattığını göster.
-echo "  2 - SYSTEM INFORMATION"  # 2 komutunun sistem bilgilerini gösterdiğini belirt.
-echo  # Boş satır bırak.
-echo "========================================"  # Alt ayırıcı çizgisini yazdır.
-echo "  Komut girmek icin 1 veya 2 yaz."  # Kullanıcıya komut seçimini açıkla.
-echo  # Son boş satırı bırak.
+echo "========================================"  # Üst ayırıcı çizgiyi yazdır.
+echo "          AMIGA CONTROL CENTER"          # Menü başlığını yazdır.
+echo "========================================"  # Alt ayırıcı çizgiyi yazdır.
+echo                                              # Boş satır yazdır.
+echo "  1 - START AMIBERRY"                        # Amiberry başlatma seçeneğini göster.
+echo "  2 - SYSTEM INFORMATION"                    # Sistem bilgisi seçeneğini göster.
+echo                                              # Boş satır yazdır.
+echo "========================================"  # Alt ayırıcı çizgiyi yazdır.
+echo "  Komut girmek icin 1 veya 2 yaz."           # Kullanım açıklamasını yazdır.
+echo                                              # Boş satır yazdır.
 ```
 
 İzin ver:
 
 ```bash
-chmod +x /usr/local/bin/menu  # Menü betiğini çalıştırılabilir yap.
+chmod +x /usr/local/bin/menu  # Menü betiğine çalıştırma izni ver.
 ```
 
 ### 11.2 `1` komutu — Amiberry başlatma
 
 ```bash
-nano /usr/local/bin/1  # '1' yazınca çalışacak Amiberry başlatıcı betiğini düzenle.
+nano /usr/local/bin/1  # 1 komutunun betiğini oluştur/düzenle.
 ```
 
 İçerik:
 
 ```bash
 #!/bin/bash
-# Bu betik yalnızca fiziksel tty1 konsolundan Amiberry başlatır.
+# Amiberry'yi yalnızca fiziksel tty1 konsolundan başlat.
 
-if [[ "$(tty)" != "/dev/tty1" ]]; then  # Oturumun gerçek tty1 olup olmadığını kontrol et.
-    echo "Amiberry fiziksel tty1 konsolundan baslatilmali."  # Yanlış terminalde uyarı göster.
-    exit 1  # Hatalı kullanımda betiği sonlandır.
-fi  # Konsol denetimini bitir.
+if [[ "$(tty)" != "/dev/tty1" ]]; then  # Aktif terminal tty1 değilse devam etme.
+    echo "Amiberry fiziksel tty1 konsolundan baslatilmali."  # Uyarı mesajını göster.
+    exit 1  # Betiği hata koduyla sonlandır.
+fi
 
-/usr/local/bin/amb   # Amiberry'yi X11 üzerinde başlat.
-/usr/local/bin/menu  # Amiberry'den çıkılınca menüyü tekrar göster.
+/usr/local/bin/amb   # Amiberry'yi başlat.
+/usr/local/bin/menu  # Amiberry kapanınca kontrol menüsünü yeniden göster.
 ```
 
 İzin:
 
 ```bash
-chmod +x /usr/local/bin/1  # '1' komutunu çalıştırılabilir yap.
+chmod +x /usr/local/bin/1  # 1 betiğine çalıştırma izni ver.
 ```
 
 ### 11.3 `2` komutu — Sistem bilgileri
 
 ```bash
-nano /usr/local/bin/2  # '2' sistem bilgileri betiğini oluştur/düzenle.
+nano /usr/local/bin/2  # 2 komutunun sistem bilgisi betiğini oluştur/düzenle.
 ```
 
 İçerik:
 
 ```bash
 #!/bin/bash
-# Sistem donanımı, bellek, disk, ağ ve çekirdek bilgilerini yazdırır.
+# Temel sistem bilgilerini terminalde göster.
 
-echo  # Boş satır.
-echo "========================================"  # Başlık üst çizgisi.
-echo "          SYSTEM INFORMATION"  # Bölüm başlığı.
-echo "========================================"  # Başlık alt çizgisi.
+echo  # Boş satır yazdır.
+echo "========================================"  # Üst ayırıcı çizgiyi yazdır.
+echo "          SYSTEM INFORMATION"             # Başlığı yazdır.
+echo "========================================"  # Alt ayırıcı çizgiyi yazdır.
 
-echo  # Boş satır.
-echo "CPU:"  # CPU bölüm etiketi.
-lscpu | grep -E 'Model name|CPU\(s\):'  # İşlemci modeli ve mantıksal CPU sayısını göster.
+echo  # Boş satır yazdır.
+echo "CPU:"  # CPU başlığını yazdır.
+lscpu | grep -E 'Model name|CPU\(s\):'  # İşlemci modeli ve CPU sayısını göster.
 
-echo  # Boş satır.
-echo "MEMORY:"  # Bellek bölüm etiketi.
-free -h  # RAM ve swap kullanımını insan-okunur biçimde göster.
+echo  # Boş satır yazdır.
+echo "MEMORY:"  # Bellek başlığını yazdır.
+free -h  # RAM ve swap kullanımını göster.
 
-echo  # Boş satır.
-echo "DISK:"  # Disk bölüm etiketi.
+echo  # Boş satır yazdır.
+echo "DISK:"  # Disk başlığını yazdır.
 df -h /  # Kök dosya sisteminin disk kullanımını göster.
 
-echo  # Boş satır.
-echo "NETWORK:"  # Ağ bölüm etiketi.
-ip -4 -br addr  # IPv4 adreslerini arayüz başına kısa biçimde göster.
+echo  # Boş satır yazdır.
+echo "NETWORK:"  # Ağ başlığını yazdır.
+ip -4 -br addr  # IPv4 adreslerini kısa biçimde göster.
 
-echo  # Boş satır.
-echo "KERNEL:"  # Çekirdek bölüm etiketi.
-uname -r  # Çalışan Linux çekirdeğinin sürümünü göster.
+echo  # Boş satır yazdır.
+echo "KERNEL:"  # Kernel başlığını yazdır.
+uname -r  # Çalışan Linux çekirdeği sürümünü göster.
 
-echo  # Son boş satır.
+echo  # Son boş satırı yazdır.
 ```
 
 İzin:
 
 ```bash
-chmod +x /usr/local/bin/2  # '2' komutunu çalıştırılabilir yap.
+chmod +x /usr/local/bin/2  # 2 betiğine çalıştırma izni ver.
 ```
 
 Menü testi:
 
 ```bash
-menu  # AMIGA CONTROL CENTER başlığını ve seçenekleri göster.
+menu  # AMIGA CONTROL CENTER menüsünü göster.
 ```
 
 Ardından:
 
-```
+```text
 1
 ```
 
 veya:
 
-```
+```text
 2
 ```
 
@@ -815,7 +938,7 @@ Bu, SL500'deki son başarılı açılış davranışımızdır.
 
 Hedef:
 
-```
+```text
 Power ON
     |
     v
@@ -840,19 +963,19 @@ AMIGA CONTROL CENTER
 ### Root başlangıç dosyası
 
 ```bash
-nano /root/.bash_profile  # Root giriş kabuğunun başlangıç komutlarını düzenle.
+nano /root/.bash_profile  # Root kullanıcısının oturum açılış betiğini düzenle.
 ```
 
 Aşağıdaki bloğu dosyaya ekle:
 
 ```bash
 # AMIGA startup - physical tty1 only
-# SSH oturumları hariç, yalnızca fiziksel tty1'de otomatik başlat.
 
-if [[ -z "$SSH_CONNECTION" && "$(tty)" == "/dev/tty1" ]]; then  # SSH değilse ve konsol tty1 ise çalış.
-    /usr/local/bin/amb   # X11 üzerinden Amiberry'yi aç.
+# SSH oturumu değilse ve fiziksel tty1 kullanılıyorsa otomatik başlat.
+if [[ -z "$SSH_CONNECTION" && "$(tty)" == "/dev/tty1" ]]; then
+    /usr/local/bin/amb   # Amiberry'yi otomatik başlat.
     /usr/local/bin/menu  # Amiberry kapanınca kontrol menüsünü göster.
-fi  # Otomatik açılış koşulunu bitir.
+fi
 ```
 
 **Bu koşul çok önemli.**
@@ -877,7 +1000,8 @@ Kurulumun bittiğini söylemeden önce sırayla bunları doğrula:
 
 - [ ] Debian 13 minimal açılıyor.
 - [ ] SSH üzerinden bağlanılıyor.
-- [ ] Ethernet / Wi-Fi erişimi çalışıyor.
+- [ ] Ethernet `192.168.1.30` ile çalışıyor.
+- [ ] Wi-Fi `192.168.1.31` ile çalışıyor.
 - [ ] NVIDIA G 105M, Nouveau ile tanınıyor.
 - [ ] Dahili ekran 1024 × 768 çalışıyor.
 - [ ] Xterm ile X11, klavye ve fare testi başarılı.
@@ -896,32 +1020,36 @@ Kurulumun bittiğini söylemeden önce sırayla bunları doğrula:
 
 ## 14. Sorun giderme
 
-| Sorun                       | İlk kontrol                                |
-| --------------------------- | ------------------------------------------ |
-| Amiberry açılmıyor          | Fiziksel konsolda `amb`                    |
-| X11 açılmıyor               | `startx /usr/bin/xterm -- :0`              |
-| Ekran çözünürlüğü yanlış    | GRUB `video=LVDS-1:1024x768@60`            |
-| Ses yok                     | `alsamixer`, Master / PCM mute             |
-| Ses yeniden kapanıyor       | `alsactl store`                            |
-| CPU kullanımı yüksek        | `htop`, Cycle-exact                        |
-| SSH bağlantısı yok          | `systemctl status ssh`                     |
-| FileZilla bağlanmıyor       | IP, port 22, hesap yetkisi                 |
-| Boot'ta Amiberry açılmıyor  | tty1 autologin ve `/root/.bash_profile`    |
+| Sorun | İlk kontrol |
+| --- | --- |
+| Amiberry açılmıyor | Fiziksel konsolda `amb` |
+| X11 açılmıyor | `startx /usr/bin/xterm -- :0` |
+| Ekran çözünürlüğü yanlış | GRUB `video=LVDS-1:1024x768@60` |
+| Ses yok | `alsamixer`, Master / PCM mute |
+| Ses yeniden kapanıyor | `alsactl store` |
+| CPU kullanımı yüksek | `htop`, Cycle-exact |
+| SSH bağlantısı yok | `systemctl status ssh` |
+| Ethernet IP yanlış | `ip -4 addr show enp12s0` |
+| Wi-Fi IP yanlış | `ip -4 addr show wlp3s0` |
+| FileZilla bağlanmıyor | IP, port 22, hesap yetkisi |
+| Boot'ta Amiberry açılmıyor | tty1 autologin ve `/root/.bash_profile` |
 | Amiberry kapanınca menü yok | `/usr/local/bin/menu` ve başlangıç dosyası |
 
 ---
 
 ## 15. Sonuç — SL500 referans yapılandırması
 
-**İşletim sistemi:** Debian 13 minimal\
-**Grafik sürücüsü:** Nouveau\
-**Grafik altyapısı:** Minimal X11\
-**Amiberry:** 8.4.2\
-**Ses:** ALSA / alsamixer\
-**Performans:** Cycle-exact kapalı\
-**Başlatma komutu:** `amb`\
-**Otomatik açılış:** tty1 + `.bash_profile`\
-**Kontrol:** AMIGA CONTROL CENTER\
+**İşletim sistemi:** Debian 13 minimal  
+**Grafik sürücüsü:** Nouveau  
+**Grafik altyapısı:** Minimal X11  
+**Amiberry:** 8.4.2  
+**Ses:** ALSA / alsamixer  
+**Ethernet:** `enp12s0` → `192.168.1.30`  
+**Wi-Fi:** `wlp3s0` → `192.168.1.31`  
+**Performans:** Cycle-exact kapalı  
+**Başlatma komutu:** `amb`  
+**Otomatik açılış:** tty1 + `.bash_profile`  
+**Kontrol:** AMIGA CONTROL CENTER  
 **Uzaktan erişim:** OpenSSH + SFTP
 
 ### Referans kurulumun temel ilkeleri
@@ -934,5 +1062,4 @@ Kurulumun bittiğini söylemeden önce sırayla bunları doğrula:
 6. Önce manuel başlatmayı doğrula, otomasyonu en son ekle.
 7. Her başarılı aşamadan sonra yeni bir sorun yaratabilecek gereksiz değişiklikler yapma.
 
-**Bu rehberin referansı Lenovo SL500'dür. Q1900G2-P üzerinde denediğimiz KMSDRM, Amiberry Lite ve özel SDL2 kütüphanesi müdahaleleri bu başarılı kurulumun parçası değildir.**
-](https://github.com/emredemirkilic/manuals/edit/main/SL500_Debian_Amiberry_Kurulum.md)
+**Bu rehber yalnızca Lenovo ThinkPad SL500 üzerinde başarıyla kullanılan referans kurulumu belgeler.**
