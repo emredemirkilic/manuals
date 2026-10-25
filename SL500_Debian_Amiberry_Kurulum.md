@@ -1,4 +1,4 @@
-# LENOVO THINKPAD SL500
+[# LENOVO THINKPAD SL500
 
 ## Debian 13 Minimal + Amiberry 8.4.2 Kurulum Rehberi
 
@@ -935,3 +935,4 @@ Kurulumun bittiğini söylemeden önce sırayla bunları doğrula:
 7. Her başarılı aşamadan sonra yeni bir sorun yaratabilecek gereksiz değişiklikler yapma.
 
 **Bu rehberin referansı Lenovo SL500'dür. Q1900G2-P üzerinde denediğimiz KMSDRM, Amiberry Lite ve özel SDL2 kütüphanesi müdahaleleri bu başarılı kurulumun parçası değildir.**
+](https://github.com/emredemirkilic/manuals/edit/main/SL500_Debian_Amiberry_Kurulum.md)
