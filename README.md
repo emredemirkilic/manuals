@@ -1,0 +1,2 @@
+# manuals
+Projelerin çalışan adımları
